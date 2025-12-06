@@ -21,7 +21,7 @@ final class BitcoinPriceService: BitcoinPriceServiceProtocol {
     }
 
     func getPriceList(vsCurrency: String, days: Int, interval: String) async throws -> PriceListResponse {
-        guard let url = URL(string: "https://api.coingecko.com/api/v3/coins/bitcoin/market_chart") else {
+        guard let url = URL(string: APIConstants.baseURL + APIConstants.marketChartPath) else {
             throw NetworkError.invalidURL
         }
         let params: [String: String] = [
@@ -34,7 +34,7 @@ final class BitcoinPriceService: BitcoinPriceServiceProtocol {
     }
 
     func getPriceDetail(date: String) async throws -> PriceDetailResponse {
-        guard let url = URL(string: "https://api.coingecko.com/api/v3/coins/bitcoin/history") else {
+        guard let url = URL(string: APIConstants.baseURL + APIConstants.historyPath) else {
             throw NetworkError.invalidURL
         }
         let params: [String: String] = [
