@@ -24,17 +24,15 @@ struct PriceListView: View {
                         Button {
                             Task { @MainActor in
                                 selectedDate = item.date
-
                                 guard let response = await viewModel.loadDetail(for: item) else { return }
                                 priceDetail = response
                                 navigate = true
                             }
                         } label: {
-                            HStack {
-                                Text(viewModel.dateFormatter(date: item.date))
-                                Spacer()
-                                Text(viewModel.roundPrice(value: item.price))
-                            }
+                            PriceRowView(
+                                date: viewModel.dateFormatter(date: item.date),
+                                price: viewModel.roundPrice(value: item.price)
+                            )
                         }
                     }
                     .disabled(isLoading)
