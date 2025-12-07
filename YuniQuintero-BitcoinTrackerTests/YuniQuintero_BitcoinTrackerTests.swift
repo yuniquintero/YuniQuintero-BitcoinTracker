@@ -10,27 +10,61 @@ import XCTest
 
 final class YuniQuintero_BitcoinTrackerTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-    }
+    let mockedResult = PriceDetailResponse(
+        marketData: CurrentPriceResponse(
+            currentPrice: Price(eur: 5000, usd: 5500, gbp: 6000)
+        )
+    )
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
-    }
+    @MainActor
+    func testLoadDetailSuccess() async throws {
+        let mockService = MockBitcoinPriceService(detailResult: .success(mockedResult))
+        let viewModel = PriceListViewModel(service: mockService)
+        let date = formDate(year: 2025, month: 12, day: 7)
+        let item = PriceListItem(date: date, price: 4000)
 
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
-    }
+        let response = await viewModel.loadDetail(for: item)
 
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
+        XCTAssertNotNil(response)
+        guard case .loadedDetail = viewModel.state else {
+            XCTFail("Expected state loadedDetail, got \(viewModel.state)")
+            return
         }
     }
 
+    @MainActor
+    func testLoadDetailFails() async throws {
+        let mockService = MockBitcoinPriceService(detailResult: .failure(NetworkError.invalidURL))
+        let viewModel = PriceListViewModel(service: mockService)
+        let date = formDate(year: 2025, month: 12, day: 7)
+        let item = PriceListItem(date: date, price: 4000)
+
+        let response = await viewModel.loadDetail(for: item)
+
+        XCTAssertNil(response)
+        guard case .failed = viewModel.state else {
+            XCTFail("Expected state failed, got \(viewModel.state)")
+            return
+        }
+    }
+
+    @MainActor
+    func testDateFormattingHelpers() {
+        let mockService = MockBitcoinPriceService(detailResult: .failure(NetworkError.invalidURL))
+        let viewModel = PriceListViewModel(service: mockService)
+        let date = formDate(year: 2025, month: 12, day: 7)
+
+        XCTAssertEqual(viewModel.dateFormatter(date: date), "Dec 7, 2025")
+        XCTAssertEqual(viewModel.dateFormatterForAPI(date: date), "2025-12-07")
+    }
+
+    private func formDate(year: Int, month: Int, day: Int) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = 12
+        let calendar = Calendar.current
+        return calendar.date(from: components) ?? Date()
+    }
 }
