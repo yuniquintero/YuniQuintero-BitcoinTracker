@@ -22,7 +22,7 @@ struct APIClient: APIClientProtocol {
 
         var request = URLRequest(url: requestURL)
         request.httpMethod = "GET"
-        request.addValue("CG-GqKt4zohw1h46q6mFvcxEv5n", forHTTPHeaderField: "x-cg-demo-api-ke")
+        request.addValue(APIConstants.apiKey, forHTTPHeaderField: APIConstants.apiHeaderField)
 
         let(data, response) = try await URLSession.shared.data(for: request)
 
